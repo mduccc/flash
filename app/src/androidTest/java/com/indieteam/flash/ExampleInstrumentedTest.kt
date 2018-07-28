@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getTargetContext()
-        assertEquals("com.example.root.flash", appContext.packageName)
+        assertEquals("com.indieteam.flash", appContext.packageName)
     }
 }

@@ -7,7 +7,7 @@ apply plugin: 'kotlin-android-extensions'
 android {
     compileSdkVersion 27
     defaultConfig {
-        applicationId "com.example.root.flash"
+        applicationId "com.indieteam.flash"
         minSdkVersion 21
         targetSdkVersion 27
         versionCode 1

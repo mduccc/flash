@@ -1,12 +1,16 @@
 package com.example.root.flash
 
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.Point
 import android.graphics.SurfaceTexture
+import android.graphics.Typeface
 import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CaptureRequest
+import android.os.BatteryManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
@@ -28,6 +32,7 @@ class FlashActivity : AppCompatActivity() {
     private var sX = 0f
     private var sY = 0f
     private lateinit  var button: Button
+    private lateinit var textView: TextView
     private lateinit var camManager: CameraManager
     private lateinit var camDevice: CameraDevice
     private lateinit var request: CaptureRequest.Builder
@@ -42,6 +47,11 @@ class FlashActivity : AppCompatActivity() {
         init()
     }
 
+    private fun init(){
+        camManager = this.getSystemService(android.content.Context.CAMERA_SERVICE) as CameraManager
+        openCamera()
+    }
+
     private fun openCamera(){
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), PERMISSIONS_REQUEST_CAMERA)
@@ -53,11 +63,6 @@ class FlashActivity : AppCompatActivity() {
         }
     }
 
-    private fun init(){
-        camManager = this.getSystemService(android.content.Context.CAMERA_SERVICE) as CameraManager
-        openCamera()
-    }
-
     private fun getListCamera(): List<String> {
         var list = listOf<String>()
         for (i in camManager.cameraIdList){
@@ -66,15 +71,43 @@ class FlashActivity : AppCompatActivity() {
         return list
     }
 
+    private fun battery(): Any{
+        val batteryStatus: Intent? = IntentFilter(Intent.ACTION_BATTERY_CHANGED).let {
+            ifilter -> this.registerReceiver(null, ifilter)
+        }
+
+        val batteryPct: Float? = batteryStatus?.let {
+            intent ->
+                val level: Int = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+                val scale: Int = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+                level / scale.toFloat()
+        }
+
+        batteryPct?.let {
+            return (batteryPct*100).toInt()
+        }
+        return "null"
+    }
+
     private fun event(){
         var i = 0
         button.setOnClickListener{
             if(i%2 == 0) {
-                button.text = "On"
+                button.let {
+                    it.text = "On"
+                    it.setBackgroundResource(R.drawable.flashlight_on)
+                }
+                textView.setTextColor(resources.getColor(R.color.colorDark))
+                rl_flash_activity.setBackgroundResource(R.color.colorWhite)
                 request.set(CaptureRequest.FLASH_MODE, CaptureRequest.FLASH_MODE_TORCH)
             }
             else{
-                button.text = "Off"
+                button.let {
+                    it.text = "Off"
+                    it.setBackgroundResource(R.drawable.flashlight_off)
+                }
+                textView.setTextColor(resources.getColor(R.color.colorAccent))
+                rl_flash_activity.setBackgroundResource(R.color.colorDark)
                 request.set(CaptureRequest.FLASH_MODE, CaptureRequest.FLASH_MODE_OFF)
             }
             camSession.setRepeatingRequest(request.build(), null, null)
@@ -84,13 +117,35 @@ class FlashActivity : AppCompatActivity() {
 
     private fun setUI(){
         button = Button(this)
-        button.isActivated = false
-        button.text = "Off"
-        button.measure(0, 0)
-        rl_flash_activity.addView(button)
-        button.x = sX*50 - button.measuredWidth/2
-        button.y = sY*50
+        val btnWidth = (sX*35).toInt()
+        button.let {
+            it.isActivated = false
+            it.text = "Off"
+            it.textSize = sX*0.6f
+            it.setBackgroundResource(R.drawable.flashlight_off)
+            it.measure(0, 0)
+            rl_flash_activity.addView(button)
+            it.layoutParams.width = btnWidth
+            it.layoutParams.height = btnWidth
+            it.x = sX*50 - btnWidth/2
+            it.y = sY*48 - btnWidth/2
+        }
+
+        textView = TextView(this)
+        textView.let {
+            it.text = "Power: ${battery()}%"
+            it.textSize = sX*1.5f
+            it.typeface = Typeface.DEFAULT_BOLD
+            it.setTextColor(resources.getColor(R.color.colorAccent))
+            it.measure(0,0)
+            it.x = sX*50 - textView.measuredWidth/2
+            it.y = sY*5
+            rl_flash_activity.addView(textView)
+        }
+
         texture = SurfaceTexture(1)
+
+        rl_flash_activity.setBackgroundResource(R.color.colorDark)
     }
 
     private fun getScreen(){
