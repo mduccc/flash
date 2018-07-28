@@ -95,6 +95,7 @@ class FlashActivity : AppCompatActivity() {
             if(i%2 == 0) {
                 button.let {
                     it.text = "On"
+                    it.setTextColor(resources.getColor(R.color.colorAccent))
                     it.setBackgroundResource(R.drawable.flashlight_on)
                 }
                 textView.setTextColor(resources.getColor(R.color.colorDark))
@@ -104,6 +105,7 @@ class FlashActivity : AppCompatActivity() {
             else{
                 button.let {
                     it.text = "Off"
+                    it.setTextColor(resources.getColor(R.color.colorAccent))
                     it.setBackgroundResource(R.drawable.flashlight_off)
                 }
                 textView.setTextColor(resources.getColor(R.color.colorAccent))
@@ -121,7 +123,8 @@ class FlashActivity : AppCompatActivity() {
         button.let {
             it.isActivated = false
             it.text = "Off"
-            it.textSize = sX*0.6f
+            it.textSize = sX*0.5f
+            it.setTextColor(resources.getColor(R.color.colorAccent))
             it.setBackgroundResource(R.drawable.flashlight_off)
             it.measure(0, 0)
             rl_flash_activity.addView(button)
