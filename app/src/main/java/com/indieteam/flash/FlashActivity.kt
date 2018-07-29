@@ -22,6 +22,7 @@ import android.view.Surface
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import es.dmoral.toasty.Toasty
 import kotlinx.android.synthetic.main.activity_flash.*
 
 @Suppress("DEPRECATION")
@@ -57,7 +58,11 @@ class FlashActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), PERMISSIONS_REQUEST_CAMERA)
         }else{
             if(getListCamera().lastIndex > 0)
-                camManager.openCamera(getListCamera()[0], OpenCallback(), null)
+                try {
+                    camManager.openCamera(getListCamera()[0], OpenCallback(), null)
+                }catch(e: Exception){
+                    Toasty.error(this, "This device is not suport camera2 api")
+                }
             else
                 Toast.makeText(this, "this device is not support", Toast.LENGTH_SHORT).show()
         }
@@ -203,7 +208,7 @@ class FlashActivity : AppCompatActivity() {
                 openCamera()
             } else {
                 // Permission request was denied.
-                Toast.makeText(this, "permission is not granded", Toast.LENGTH_SHORT).show()
+                Toasty.error(this, "permission is not granded", Toast.LENGTH_SHORT).show()
             }
         }
     }
