@@ -24,6 +24,8 @@ import android.widget.TextView
 import android.widget.Toast
 import es.dmoral.toasty.Toasty
 import kotlinx.android.synthetic.main.activity_flash.*
+import java.util.*
+import kotlin.concurrent.schedule
 
 @Suppress("DEPRECATION")
 class FlashActivity : AppCompatActivity() {
@@ -140,6 +142,7 @@ class FlashActivity : AppCompatActivity() {
         }
 
         textView = TextView(this)
+
         textView.let {
             it.text = "Power: ${battery()}%"
             it.textSize = sX*1.5f
@@ -154,6 +157,12 @@ class FlashActivity : AppCompatActivity() {
         texture = SurfaceTexture(1)
 
         rl_flash_activity.setBackgroundResource(R.color.colorDark)
+
+        Timer().schedule(0, 1000){
+            this@FlashActivity.runOnUiThread {
+                textView.text = "Power: ${battery()}%"
+            }
+        }
     }
 
     private fun getScreen(){
@@ -212,4 +221,19 @@ class FlashActivity : AppCompatActivity() {
             }
         }
     }
+
+//    var i = 0
+//
+//    override fun onResume() {
+//        super.onResume()
+//        if(i >0){
+//            init()
+//        }
+//        i++
+//    }
+//
+//    override fun onPause() {
+//        super.onPause()
+//        camDevice.close()
+//    }
 }
