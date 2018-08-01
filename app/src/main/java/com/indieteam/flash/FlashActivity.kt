@@ -145,7 +145,7 @@ class FlashActivity : AppCompatActivity() {
 
         textView.let {
             it.text = "Power: ${battery()}%"
-            it.textSize = sX*1.5f
+            it.textSize = 15f
             it.typeface = Typeface.DEFAULT_BOLD
             it.setTextColor(resources.getColor(R.color.colorAccent))
             it.measure(0,0)
