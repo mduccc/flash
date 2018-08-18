@@ -8,10 +8,10 @@ android {
     compileSdkVersion 27
     defaultConfig {
         applicationId "com.indieteam.flash"
-        minSdkVersion 22
+        minSdkVersion 21
         targetSdkVersion 27
-        versionCode 4
-        versionName "1.2"
+        versionCode 6cd 
+        versionName "1.3"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

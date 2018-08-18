@@ -3,13 +3,11 @@ package com.example.root.flash
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.graphics.ImageFormat
 import android.graphics.Point
 import android.graphics.SurfaceTexture
 import android.graphics.Typeface
-import android.hardware.camera2.CameraCaptureSession
-import android.hardware.camera2.CameraDevice
-import android.hardware.camera2.CameraManager
-import android.hardware.camera2.CaptureRequest
+import android.hardware.camera2.*
 import android.os.BatteryManager
 import android.os.Bundle
 import android.os.Handler
@@ -41,6 +39,7 @@ class FlashActivity : AppCompatActivity() {
     private lateinit var request: CaptureRequest.Builder
     private lateinit var camSession: CameraCaptureSession
     private lateinit var texture: SurfaceTexture
+    private var cameraBackId = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,31 +50,42 @@ class FlashActivity : AppCompatActivity() {
     }
 
     private fun init(){
-        camManager = this.getSystemService(android.content.Context.CAMERA_SERVICE) as CameraManager
-        openCamera()
+        var detectBackCam = 0
+        var detectFlash = 0
+        if(packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+            camManager = this.getSystemService(android.content.Context.CAMERA_SERVICE) as CameraManager
+            for (i in camManager.cameraIdList){
+                val camCharacteristics = camManager.getCameraCharacteristics(i.toString())
+                if(camCharacteristics.get(CameraCharacteristics.LENS_FACING) == CameraMetadata.LENS_FACING_BACK){
+                    detectBackCam = 1
+                    if(packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
+                        detectFlash = 1
+                        cameraBackId = i
+                    }
+                }
+            }
+            if(detectBackCam == 1 && detectFlash == 1)
+                openCamera()
+            if(detectBackCam == 0)
+                Toasty.error(this, "This device is not support back camera", Toast.LENGTH_SHORT).show()
+            if(detectFlash == 0)
+                Toasty.error(this, "This device is not support led flash", Toast.LENGTH_SHORT).show()
+
+        }else{
+            Toasty.error(this, "This device is not support camera", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun openCamera(){
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), PERMISSIONS_REQUEST_CAMERA)
         }else{
-            if(getListCamera().lastIndex > 0)
-                try {
-                    camManager.openCamera(getListCamera()[0], OpenCallback(), null)
-                }catch(e: Exception){
-                    Toasty.error(this, "This device is not suport camera2 api")
-                }
-            else
-                Toast.makeText(this, "this device is not support", Toast.LENGTH_SHORT).show()
+            try {
+                camManager.openCamera(cameraBackId, OpenCallback(), null)
+            }catch(e: Exception){
+                Toasty.error(this, "This device is not suport camera2 api", Toast.LENGTH_SHORT).show()
+            }
         }
-    }
-
-    private fun getListCamera(): List<String> {
-        var list = listOf<String>()
-        for (i in camManager.cameraIdList){
-            list += i
-        }
-        return list
     }
 
     private fun battery(): Any{
@@ -179,7 +189,14 @@ class FlashActivity : AppCompatActivity() {
             camDevice = camera
             request = camDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
 
-            texture.setDefaultBufferSize(1, 1)
+            val characteristics = camManager.getCameraCharacteristics(cameraBackId)
+            val configs = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+            for (i in 0 until  configs.getOutputSizes(ImageFormat.JPEG).size){
+                if(i == configs.getOutputSizes(ImageFormat.JPEG).size - 1){
+                    val size = configs.getOutputSizes(ImageFormat.JPEG)[i]
+                    texture.setDefaultBufferSize(size.width, size.height)
+                }
+            }
             request.addTarget(Surface(texture))
 
             val outputSurface = ArrayList<Surface>(1)
